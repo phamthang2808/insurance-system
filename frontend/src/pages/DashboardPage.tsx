@@ -21,6 +21,8 @@ import {
 } from "recharts";
 import { CustomerActions } from "@/components/customer/CustomerActions";
 import { StaffActions } from "@/components/staff/StaffActions";
+import { IncidentReportForm } from "@/components/customer/IncidentReportForm";
+import { ChatbotWidget } from "@/components/chatbot/ChatbotWidget";
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -351,21 +353,26 @@ const DashboardPage = () => {
               <Card>
                 <CardContent>
                   <Typography variant="h6" sx={{ mb: 2 }}>My Incidents</Typography>
-                  {stats?.myIncidents && stats.myIncidents.length > 0 ? (
-                    <ul>
-                      {stats.myIncidents.map((i, idx) => (
-                        <li key={idx}>Incident #{i.id} - Status: {i.status} - {new Date(i.reportedAt).toLocaleDateString()}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <Typography color="text.secondary">No incidents reported.</Typography>
-                  )}
+                  <IncidentReportForm onSuccess={loadData} />
+                  <Box sx={{ mt: 3 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">Lịch sử sự cố</Typography>
+                    {stats?.myIncidents && stats.myIncidents.length > 0 ? (
+                      <ul>
+                        {stats.myIncidents.map((i: any, idx: number) => (
+                          <li key={idx}>Incident #{i.id} - {i.title || i.description?.substring(0,20)} - Status: {i.status} - {new Date(i.reportedAt).toLocaleDateString()}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <Typography color="text.secondary">No incidents reported.</Typography>
+                    )}
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
           </Grid>
         )}
       </Container>
+      <ChatbotWidget />
     </Box>
   );
 };

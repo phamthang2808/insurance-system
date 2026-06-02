@@ -4,14 +4,14 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class IncidentReportDTO {
+public class AppointmentDTO {
     private Long id;
     private Long customerId;
     private String customerName;
-    private String title;
-    private String description;
-    private String severity;
-    private String attachments;
+    private Long staffId;
+    private String staffName;
+    private LocalDateTime scheduledTime;
     private String status;
-    private LocalDateTime reportedAt;
+    private String reason;
+    private String meetingLink;
 }

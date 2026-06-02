@@ -19,6 +19,8 @@ public class DashboardService {
     private final CustomerPolicyRepository policyRepository;
     private final IncidentReportRepository incidentRepository;
     private final InsurancePackageRepository packageRepository;
+    private final CustomerPolicyService policyService;
+    private final IncidentReportService incidentService;
 
     public Map<String, Object> getAdminStatistics() {
         Map<String, Object> stats = new HashMap<>();
@@ -80,8 +82,8 @@ public class DashboardService {
     public Map<String, Object> getCustomerDashboardSummary(Long userId) {
         Map<String, Object> summary = new HashMap<>();
         
-        summary.put("myPolicies", policyRepository.findByCustomerId(userId));
-        summary.put("myIncidents", incidentRepository.findByCustomerId(userId));
+        summary.put("myPolicies", policyService.getPoliciesByCustomerId(userId));
+        summary.put("myIncidents", incidentService.getIncidentsByCustomerId(userId));
         
         return summary;
     }

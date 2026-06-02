@@ -7,6 +7,7 @@ export interface InsurancePackage {
   terms: string;
   price: number;
   status: string;
+  processSteps?: string;
 }
 
 export interface CustomerPolicy {

@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  MenuItem,
   Paper,
   Tab,
   Table,
@@ -653,12 +654,13 @@ const AdminPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, role: e.target.value })
                 }
-                SelectProps={{ native: true }}
               >
-                <option value="USER">User</option>
-                <option value="STAFF">Staff</option>
-                <option value="ADMIN">Admin</option>
-                {user?.role === "SUPER_ADMIN" && <option value="SUPER_ADMIN">Super Admin</option>}
+                <MenuItem value="USER">User</MenuItem>
+                <MenuItem value="STAFF">Staff</MenuItem>
+                <MenuItem value="ADMIN">Admin</MenuItem>
+                {user?.role === "SUPER_ADMIN" && (
+                  <MenuItem value="SUPER_ADMIN">Super Admin</MenuItem>
+                )}
               </TextField>
             </>
           )}
@@ -682,12 +684,13 @@ const AdminPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, role: e.target.value })
               }
-              SelectProps={{ native: true }}
             >
-              <option value="USER">User</option>
-              <option value="STAFF">Staff</option>
-              <option value="ADMIN">Admin</option>
-              {user?.role === "SUPER_ADMIN" && <option value="SUPER_ADMIN">Super Admin</option>}
+              <MenuItem value="USER">User</MenuItem>
+              <MenuItem value="STAFF">Staff</MenuItem>
+              <MenuItem value="ADMIN">Admin</MenuItem>
+              {user?.role === "SUPER_ADMIN" && (
+                <MenuItem value="SUPER_ADMIN">Super Admin</MenuItem>
+              )}
             </TextField>
           )}
         </DialogContent>

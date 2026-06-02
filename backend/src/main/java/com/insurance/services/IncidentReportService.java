@@ -35,7 +35,9 @@ public class IncidentReportService {
 
         IncidentReport incident = new IncidentReport();
         incident.setCustomer(customer);
+        incident.setTitle(request.getTitle() != null ? request.getTitle() : "Untitled Incident");
         incident.setDescription(request.getDescription());
+        incident.setSeverity(request.getSeverity() != null ? request.getSeverity() : "NORMAL");
         incident.setAttachments(request.getAttachments());
         incident.setStatus("PENDING");
         incident.setReportedAt(LocalDateTime.now());
@@ -56,7 +58,9 @@ public class IncidentReportService {
         dto.setId(incident.getId());
         dto.setCustomerId(incident.getCustomer().getId());
         dto.setCustomerName(incident.getCustomer().getFullName());
+        dto.setTitle(incident.getTitle());
         dto.setDescription(incident.getDescription());
+        dto.setSeverity(incident.getSeverity());
         dto.setAttachments(incident.getAttachments());
         dto.setStatus(incident.getStatus());
         dto.setReportedAt(incident.getReportedAt());

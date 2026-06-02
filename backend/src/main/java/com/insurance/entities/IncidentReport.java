@@ -15,8 +15,13 @@ public class IncidentReport extends BaseEntity {
     @JoinColumn(name = "customer_id", nullable = false)
     private UserEntity customer;
 
+    @Column(nullable = false)
+    private String title;
+
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
+    
+    private String severity = "NORMAL"; // URGENT, HIGH, NORMAL, LOW
     
     private String attachments;
     private String status;

@@ -42,7 +42,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody com.insurance.models.request.LoginRequest request) {
         AuthResponse authData = userService.login(request);
-        ApiResponse<AuthResponse> response = ApiResponse.success("ÄÄƒng nháº­p thĂ nh cĂ´ng", authData);
+        ApiResponse<AuthResponse> response = ApiResponse.success("Đăng nhập thành công", authData);
         return ResponseEntity.ok(response);
     }
 

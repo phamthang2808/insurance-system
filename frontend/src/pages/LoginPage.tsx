@@ -1,6 +1,15 @@
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/services/authStore";
-import { Alert, Box, Container, Typography, TextField, Button, Divider, Paper } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Container,
+  Divider,
+  Paper,
+  TextField,
+  Typography,
+} from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -148,7 +157,7 @@ const LoginPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Clear old auth data
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
@@ -207,10 +216,10 @@ const LoginPage: React.FC = () => {
         minHeight="100vh"
       >
         <Typography variant="h2" gutterBottom>
-          Insurance System
+          Hệ Thống Bảo Hiểm
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
-          Hệ thống Quản lý Công ty Bảo hiểm
+          Hệ Thống Quản Lý Công Ty Bảo Hiểm
         </Typography>
 
         {error && (
@@ -219,7 +228,10 @@ const LoginPage: React.FC = () => {
           </Alert>
         )}
 
-        <Paper elevation={3} sx={{ p: 4, width: "100%", mt: 2, borderRadius: 2 }}>
+        <Paper
+          elevation={3}
+          sx={{ p: 4, width: "100%", mt: 2, borderRadius: 2 }}
+        >
           <form onSubmit={handleLocalLogin}>
             <TextField
               fullWidth
@@ -233,7 +245,7 @@ const LoginPage: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Mật khẩu"
+              label="Mật Khẩu"
               variant="outlined"
               margin="normal"
               value={password}
@@ -250,7 +262,7 @@ const LoginPage: React.FC = () => {
               disabled={loading}
               sx={{ mt: 3, mb: 2, py: 1.5 }}
             >
-              {loading ? "Đang xử lý..." : "Đăng nhập"}
+              {loading ? "Đang Xử Lý..." : "Đăng Nhập"}
             </Button>
           </form>
 
@@ -263,7 +275,7 @@ const LoginPage: React.FC = () => {
 
         {!googleLoaded && (
           <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
-            Loading Google Sign-In...
+            Đang Tải Google Sign-In...
           </Typography>
         )}
       </Box>

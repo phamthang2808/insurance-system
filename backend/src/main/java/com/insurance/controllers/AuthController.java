@@ -59,7 +59,7 @@ public class AuthController {
 
             UserResponse userResponse = userService.getUserById(user.getId());
 
-            // Ghi audit log Ä‘Äƒng nháº­p thĂ nh cĂ´ng
+            // Ghi audit log đăng nhập thành công
             auditLogService.logAction(
                 user.getId(),
                 user.getEmail(),
@@ -80,7 +80,7 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             log.warn("Failed login attempt for email: {}", request.getEmail());
 
-            // Ghi audit log Ä‘Äƒng nháº­p tháº¥t báº¡i
+            // Ghi audit log đăng nhập thất bại
             auditLogService.logAction(
                 null,
                 request.getEmail(),
@@ -91,7 +91,7 @@ public class AuthController {
             );
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Email hoáº·c máº­t kháº©u khĂ´ng Ä‘Ăºng", HttpStatus.UNAUTHORIZED.value()));
+                .body(ApiResponse.error("Email hoặc mật khẩu không đúng", HttpStatus.UNAUTHORIZED.value()));
 
         } catch (DisabledException e) {
             log.warn("Disabled account login attempt for email: {}", request.getEmail());
@@ -106,7 +106,7 @@ public class AuthController {
             );
 
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("TĂ i khoáº£n cá»§a báº¡n Ä‘Ă£ bá»‹ vĂ´ hiá»‡u hĂ³a", HttpStatus.FORBIDDEN.value()));
+                .body(ApiResponse.error("Tài khoản của bạn đã bị vô hiệu hóa", HttpStatus.FORBIDDEN.value()));
         }
     }
 
@@ -116,6 +116,6 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Map<String, String>>> register() {
         return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
-            .body(ApiResponse.error("Vui lĂ²ng Ä‘Äƒng nháº­p báº±ng Google", HttpStatus.NOT_IMPLEMENTED.value()));
+            .body(ApiResponse.error("Vui lòng đăng nhập bằng Google", HttpStatus.NOT_IMPLEMENTED.value()));
     }
 }

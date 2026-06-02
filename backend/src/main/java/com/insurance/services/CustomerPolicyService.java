@@ -23,10 +23,12 @@ public class CustomerPolicyService {
     private final UserRepository userRepository;
     private final InsurancePackageRepository packageRepository;
 
+    @Transactional(readOnly = true)
     public List<CustomerPolicyDTO> getAllPolicies() {
         return policyRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<CustomerPolicyDTO> getPoliciesByCustomerId(Long customerId) {
         return policyRepository.findByCustomerId(customerId).stream().map(this::mapToDTO).collect(Collectors.toList());
     }
@@ -37,6 +39,13 @@ public class CustomerPolicyService {
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
         InsurancePackage pkg = packageRepository.findById(request.getPackageId())
                 .orElseThrow(() -> new RuntimeException("Package not found"));
+
+        if (policyRepository.existsByCustomerIdAndInsurancePackageIdAndStatusIn(
+                request.getCustomerId(),
+                request.getPackageId(),
+                List.of("PENDING", "ACTIVE"))) {
+            throw new com.insurance.exceptions.InvalidParamException("Bạn đã đăng ký gói bảo hiểm này và nó đang chờ duyệt hoặc đã hoạt động.");
+        }
 
         CustomerPolicy policy = new CustomerPolicy();
         policy.setCustomer(customer);

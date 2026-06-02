@@ -196,25 +196,39 @@ const CollapsibleRow: React.FC<RowProps> = ({ row, onEdit, onDelete }) => {
                     🔄 Quy trình duyệt hồ sơ
                   </Typography>
                   {steps.length > 0 ? (
-                    <Stepper
-                      orientation="vertical"
-                      activeStep={-1}
-                      sx={{
-                        mt: 1,
-                        "& .MuiStepIcon-root": { color: "#6366f1" },
-                        "& .MuiStepIcon-text": { fill: "#ffffff" },
-                      }}
-                    >
-                      {steps.map((step: string, index: number) => (
-                        <Step key={index} completed={false}>
-                          <StepLabel>
-                            <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                              {step}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                      {steps.map((step: string, index: number) => {
+                        const translateMap: Record<string, string> = {
+                          'RECEIVING': 'Tiếp nhận',
+                          'APPRAISING': 'Thẩm định',
+                          'SIGNING': 'Ký hợp đồng',
+                          'ACTIVE': 'Đã kích hoạt'
+                        };
+                        const translatedStep = translateMap[step.toUpperCase()] || step;
+                        
+                        return (
+                          <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                            <Box sx={{
+                              minWidth: 24,
+                              height: 24,
+                              borderRadius: '50%',
+                              backgroundColor: '#e0e7ff',
+                              color: '#4338ca',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 'bold',
+                              fontSize: '0.75rem'
+                            }}>
+                              {index + 1}
+                            </Box>
+                            <Typography variant="body2" sx={{ fontWeight: 500, color: "#334155", mt: 0.3 }}>
+                              {translatedStep}
                             </Typography>
-                          </StepLabel>
-                        </Step>
-                      ))}
-                    </Stepper>
+                          </Box>
+                        );
+                      })}
+                    </Box>
                   ) : (
                     <Box sx={{ display: "flex", alignItems: "center", mt: 1, p: 1.5, backgroundColor: "#fff", borderRadius: "6px", border: "1px dashed #cbd5e1" }}>
                       <InfoIcon />

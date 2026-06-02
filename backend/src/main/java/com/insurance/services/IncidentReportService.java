@@ -20,10 +20,12 @@ public class IncidentReportService {
     private final IncidentReportRepository incidentRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<IncidentReportDTO> getAllIncidents() {
         return incidentRepository.findAll().stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<IncidentReportDTO> getIncidentsByCustomerId(Long customerId) {
         return incidentRepository.findByCustomerId(customerId).stream().map(this::mapToDTO).collect(Collectors.toList());
     }

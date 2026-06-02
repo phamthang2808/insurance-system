@@ -57,17 +57,21 @@ public class UserService {
 
 
     /**
-     * Láº¥y profile cá»§a chĂ­nh mĂ¬nh
+     * Lấy profile của chính mình
      */
+    @Transactional(readOnly = true)
     public UserResponse getProfie() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserEntity user = (UserEntity) authentication.getPrincipal();
+        UserEntity userDetails = (UserEntity) authentication.getPrincipal();
+        UserEntity user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new InvalidParamException("User not found"));
         return mapToUserResponse(user);
     }
 
     /**
-     * Láº¥y info public cá»§a má»™t user khĂ¡c
+     * Lấy info public của một user khác
      */
+    @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> {
@@ -78,8 +82,9 @@ public class UserService {
     }
 
     /**
-     * Láº¥y user theo email
+     * Lấy user theo email
      */
+    @Transactional(readOnly = true)
     public UserResponse getUserByEmail(String email) {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
@@ -102,7 +107,7 @@ public class UserService {
             // 2. XĂ¡c minh cĂ¡i token mĂ  React vá»«a gá»­i lĂªn
             GoogleIdToken idToken = verifier.verify(credentialToken);
             if (idToken == null) {
-                throw new InvalidParamException("Token Google khĂ´ng há»£p lá»‡ hoáº·c Ä‘Ă£ háº¿t háº¡n.");
+                throw new InvalidParamException("Token Google không hợp lệ hoặc đã hết hạn.");
             }
 
             // 3. Giáº£i mĂ£ láº¥y thĂ´ng tin User ngay táº¡i chá»— (KhĂ´ng cáº§n gá»i thĂªm API sang Google)
@@ -142,7 +147,7 @@ public class UserService {
 
 // Chá»‘t cháº·n an ninh: Kiá»ƒm tra xem tĂ i khoáº£n (dĂ¹ cÅ© hay má»›i) cĂ³ Ä‘ang bá»‹ Admin khĂ³a khĂ´ng
             if (user.getIsActive() != null && !user.getIsActive()) {
-                throw new InvalidParamException("TĂ i khoáº£n cá»§a báº¡n Ä‘Ă£ bá»‹ khĂ³a.");
+                throw new InvalidParamException("Tài khoản của bạn đã bị khóa.");
             }
 
 
@@ -169,7 +174,7 @@ public class UserService {
         } catch (InvalidParamException e) {
             throw e; // Tráº£ Ä‘Ăºng lá»—i do mĂ¬nh tá»± Ä‘á»‹nh nghÄ©a ra Controller
         } catch (Exception e) {
-            throw new RuntimeException("XĂ¡c thá»±c Google OAuth tháº¥t báº¡i: " + e.getMessage());
+            throw new RuntimeException("Xác thực Google OAuth thất bại: " + e.getMessage());
         }
     }
 
@@ -187,7 +192,7 @@ public class UserService {
             UserEntity user = (UserEntity) authentication.getPrincipal();
 
             if (user.getIsActive() != null && !user.getIsActive()) {
-                throw new InvalidParamException("TĂ i khoáº£n cá»§a báº¡n Ä‘Ă£ bá»‹ khĂ³a");
+                throw new InvalidParamException("Tài khoản của bạn đã bị khóa");
             }
 
             String token = jwtService.generateAccessToken(user);
@@ -209,7 +214,7 @@ public class UserService {
                     .user(mapToUserResponse(user))
                     .build();
         } catch (org.springframework.security.core.AuthenticationException e) {
-            throw new InvalidParamException("Email hoáº·c máº­t kháº©u khĂ´ng chĂ­nh xĂ¡c");
+            throw new InvalidParamException("Email hoặc mật khẩu không chính xác");
         }
     }
 
@@ -218,7 +223,7 @@ public class UserService {
     @Transactional
     protected UserEntity createGoogleUser(String email, String name, String pictureUrl, String gooogleId) {
         RoleEntity userRole = roleRepository.findByNameIgnoreCase("USER")
-                .orElseThrow(() -> new DataNotFoundException("Role USER khĂ´ng tá»“n táº¡i"));
+                .orElseThrow(() -> new DataNotFoundException("Role USER không tồn tại"));
 
         UserEntity user = UserEntity.builder()
                 .email(email)
@@ -273,6 +278,7 @@ public class UserService {
     /**
      * Get all users (Admin)
      */
+    @Transactional(readOnly = true)
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::mapToUserResponse)
@@ -299,7 +305,7 @@ public class UserService {
 
         if (role != null && "SUPER_ADMIN".equalsIgnoreCase(role.getName()) && 
             (currentUser.getRole() == null || !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName()))) {
-            throw new InvalidParamException("Chá»‰ Super Admin má»›i cĂ³ quyá»n táº¡o tĂ i khoáº£n Super Admin.");
+            throw new InvalidParamException("Chỉ Super Admin mới có quyền tạo tài khoản Super Admin.");
         }
 
         UserEntity user = UserEntity.builder()
@@ -333,7 +339,7 @@ public class UserService {
 
         if (role != null && "SUPER_ADMIN".equalsIgnoreCase(role.getName()) && 
             (currentUser.getRole() == null || !"SUPER_ADMIN".equalsIgnoreCase(currentUser.getRole().getName()))) {
-            throw new InvalidParamException("Chá»‰ Super Admin má»›i cĂ³ quyá»n cáº¥p phĂ¡t chá»©c vá»¥ Super Admin.");
+            throw new InvalidParamException("Chỉ Super Admin mới có quyền cấp phát chức vụ Super Admin.");
         }
 
         user.setRole(role);
@@ -390,13 +396,13 @@ public class UserService {
 
         // 1. KhĂ´ng ai Ä‘Æ°á»£c phĂ©p cháº¡m vĂ o Super Admin
         if (targetUser.getRole() != null && "SUPER_ADMIN".equalsIgnoreCase(targetUser.getRole().getName())) {
-            throw new InvalidParamException("KhĂ´ng thá»ƒ thao tĂ¡c trĂªn tĂ i khoáº£n Super Admin.");
+            throw new InvalidParamException("Không thể thao tác trên tài khoản Super Admin.");
         }
 
         // 2. Admin khĂ´ng Ä‘Æ°á»£c thao tĂ¡c trĂªn Admin khĂ¡c
         if (currentUser.getRole() != null && "ADMIN".equalsIgnoreCase(currentUser.getRole().getName()) && 
             targetUser.getRole() != null && "ADMIN".equalsIgnoreCase(targetUser.getRole().getName())) {
-            throw new InvalidParamException("Admin ngang hĂ ng khĂ´ng thá»ƒ thao tĂ¡c trĂªn tĂ i khoáº£n cá»§a nhau.");
+            throw new InvalidParamException("Admin ngang hàng không thể thao tác trên tài khoản của nhau.");
         }
     }
 
@@ -422,6 +428,7 @@ public class UserService {
     /**
      * Get customers assigned to a staff
      */
+    @Transactional(readOnly = true)
     public List<UserResponse> getAssignedCustomers(Long staffId) {
         return userRepository.findAll().stream()
                 .filter(u -> u.getAssignedStaff() != null && u.getAssignedStaff().getId().equals(staffId))

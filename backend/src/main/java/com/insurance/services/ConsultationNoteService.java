@@ -19,11 +19,13 @@ public class ConsultationNoteService {
     private final ConsultationNoteRepository noteRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getNotesByCustomer(Long customerId) {
         return noteRepository.findByCustomerIdOrderByNotedAtDesc(customerId)
                 .stream().map(this::mapToDTO).collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getNotesByStaff(Long staffId) {
         return noteRepository.findByStaffIdOrderByNotedAtDesc(staffId)
                 .stream().map(this::mapToDTO).collect(Collectors.toList());

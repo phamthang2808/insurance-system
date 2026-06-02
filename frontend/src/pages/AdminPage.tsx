@@ -1,3 +1,5 @@
+import { PackageManagement } from "@/components/admin/PackageManagement";
+import { StaffAssignment } from "@/components/admin/StaffAssignment";
 import { adminService } from "@/services/adminService";
 import { useAuthStore } from "@/services/authStore";
 import {
@@ -31,8 +33,6 @@ import {
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PackageManagement } from "@/components/admin/PackageManagement";
-import { StaffAssignment } from "@/components/admin/StaffAssignment";
 
 interface User {
   id: number;
@@ -122,7 +122,9 @@ const AdminPage = () => {
     // Fetch latest profile from server to check role dynamically
     const checkRoleAndLoad = async () => {
       try {
-        const profileRes = await import("@/services/apiClient").then(m => m.default.get("/users/profile"));
+        const profileRes = await import("@/services/apiClient").then((m) =>
+          m.default.get("/users/profile"),
+        );
         if (profileRes.data?.data) {
           const backendUser = profileRes.data.data;
           const freshUser = {
@@ -303,14 +305,20 @@ const AdminPage = () => {
     <Box>
       <AppBar position="static">
         <Toolbar sx={{ flexWrap: "wrap", gap: 1, py: { xs: 1, sm: 0 } }}>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontSize: { xs: "0.9rem", sm: "1.25rem" } }}>
-            👨‍💼 Admin Dashboard
+          <Typography
+            variant="h6"
+            sx={{ flexGrow: 1, fontSize: { xs: "0.9rem", sm: "1.25rem" } }}
+          >
+            👨‍💼 Bảng Điều Khiển Admin
           </Typography>
-          <Typography variant="body2" sx={{ mr: 1, display: { xs: "none", md: "block" } }}>
+          <Typography
+            variant="body2"
+            sx={{ mr: 1, display: { xs: "none", md: "block" } }}
+          >
             {user?.email}
           </Typography>
           <Button color="inherit" size="small" onClick={handleLogout}>
-            Logout
+            Đăng Xuất
           </Button>
         </Toolbar>
       </AppBar>
@@ -330,11 +338,11 @@ const AdminPage = () => {
             scrollButtons="auto"
             allowScrollButtonsMobile
           >
-            <Tab label="📊 Statistics" />
-            <Tab label="👥 Users Management" />
-            <Tab label="📋 Access History" />
-            <Tab label="📦 Packages" />
-            <Tab label="👨‍💼 Staff Assignment" />
+            <Tab label="📊 Thống Kê" />
+            <Tab label="👥 Quản Lý Người Dùng" />
+            <Tab label="📋 Lịch Sử Truy Cập" />
+            <Tab label="📦 Gói Bảo Hiểm" />
+            <Tab label="👨‍💼 Giao Nhân Viên" />
           </Tabs>
         </Paper>
 
@@ -346,7 +354,7 @@ const AdminPage = () => {
                 <Card sx={{ backgroundColor: "#6366f1", color: "white" }}>
                   <CardContent>
                     <Typography color="inherit" sx={{ mb: 1 }}>
-                      Total Users
+                      Tổng Người Dùng
                     </Typography>
                     <Typography variant="h4">{stats.totalUsers}</Typography>
                   </CardContent>
@@ -356,7 +364,7 @@ const AdminPage = () => {
                 <Card sx={{ backgroundColor: "#10b981", color: "white" }}>
                   <CardContent>
                     <Typography color="inherit" sx={{ mb: 1 }}>
-                      Active Users
+                      Người Dùng Hoạt Động
                     </Typography>
                     <Typography variant="h4">{stats.activeUsers}</Typography>
                   </CardContent>
@@ -366,7 +374,7 @@ const AdminPage = () => {
                 <Card sx={{ backgroundColor: "#f59e0b", color: "white" }}>
                   <CardContent>
                     <Typography color="inherit" sx={{ mb: 1 }}>
-                      Inactive Users
+                      Người Dùng Không Hoạt Động
                     </Typography>
                     <Typography variant="h4">{stats.inactiveUsers}</Typography>
                   </CardContent>
@@ -376,7 +384,7 @@ const AdminPage = () => {
                 <Card sx={{ backgroundColor: "#3b82f6", color: "white" }}>
                   <CardContent>
                     <Typography color="inherit" sx={{ mb: 1 }}>
-                      Roles Distribution
+                      Phân Bố Vai Trò
                     </Typography>
                     <Typography variant="body2">
                       {Object.entries(stats.roleBreakdown).map(
@@ -404,7 +412,7 @@ const AdminPage = () => {
               onClick={handleOpenCreateDialog}
               sx={{ textTransform: "none" }}
             >
-              ➕ Create New User
+              ➕ Tạo Người Dùng Mới
             </Button>
           </Box>
 
@@ -413,20 +421,54 @@ const AdminPage = () => {
               <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", display: { xs: "none", sm: "table-cell" } }}>Full Name</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", display: { xs: "none", sm: "table-cell" } }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", display: { xs: "none", md: "table-cell" } }}>Created</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      display: { xs: "none", sm: "table-cell" },
+                    }}
+                  >
+                    Tên Đầy Đủ
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Vai Trò</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      display: { xs: "none", sm: "table-cell" },
+                    }}
+                  >
+                    Trạng Thái
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      display: { xs: "none", md: "table-cell" },
+                    }}
+                  >
+                    Ngày Tạo
+                  </TableCell>
                   <TableCell align="center" sx={{ fontWeight: "bold" }}>
-                    Actions
+                    Hành Động
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id} hover>
-                    <TableCell sx={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</TableCell>
-                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>{user.fullName}</TableCell>
+                    <TableCell
+                      sx={{
+                        maxWidth: 160,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {user.email}
+                    </TableCell>
+                    <TableCell
+                      sx={{ display: { xs: "none", sm: "table-cell" } }}
+                    >
+                      {user.fullName}
+                    </TableCell>
                     <TableCell>
                       <Typography
                         variant="body2"
@@ -438,9 +480,9 @@ const AdminPage = () => {
                               ? "#fbcfe8"
                               : user.role === "ADMIN"
                                 ? "#fecaca"
-                              : user.role === "STAFF"
-                                ? "#bfdbfe"
-                                : "#dbeafe",
+                                : user.role === "STAFF"
+                                  ? "#bfdbfe"
+                                  : "#dbeafe",
                           borderRadius: 1,
                           display: "inline-block",
                           fontSize: "0.75rem",
@@ -449,7 +491,9 @@ const AdminPage = () => {
                         {user.role}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                    <TableCell
+                      sx={{ display: { xs: "none", sm: "table-cell" } }}
+                    >
                       <Typography
                         variant="body2"
                         sx={{
@@ -464,10 +508,15 @@ const AdminPage = () => {
                           fontSize: "0.75rem",
                         }}
                       >
-                        {user.isActive ? "Active" : "Inactive"}
+                        {user.isActive ? "Hoạt Động" : "Không Hoạt Động"}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ display: { xs: "none", md: "table-cell" }, whiteSpace: "nowrap" }}>
+                    <TableCell
+                      sx={{
+                        display: { xs: "none", md: "table-cell" },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {user.createdAt
                         ? format(new Date(user.createdAt), "dd/MM/yyyy")
                         : "-"}
@@ -487,7 +536,7 @@ const AdminPage = () => {
                           onClick={() => handleOpenChangeRoleDialog(user)}
                           sx={{ textTransform: "none", fontSize: "0.7rem" }}
                         >
-                          Role
+                          Vai Trò
                         </Button>
                         <Button
                           size="small"
@@ -495,7 +544,7 @@ const AdminPage = () => {
                           onClick={() => handleOpenResetPasswordDialog(user)}
                           sx={{ textTransform: "none", fontSize: "0.7rem" }}
                         >
-                          Password
+                          Mật Khẩu
                         </Button>
                         <Button
                           size="small"
@@ -504,7 +553,7 @@ const AdminPage = () => {
                           onClick={() => handleToggleUserStatus(user)}
                           sx={{ textTransform: "none", fontSize: "0.7rem" }}
                         >
-                          {user.isActive ? "Disable" : "Enable"}
+                          {user.isActive ? "Vô Hiệu Hóa" : "Kích Hoạt"}
                         </Button>
                         <Button
                           size="small"
@@ -513,7 +562,7 @@ const AdminPage = () => {
                           onClick={() => handleDeleteUser(user)}
                           sx={{ textTransform: "none", fontSize: "0.7rem" }}
                         >
-                          Del
+                          Xóa
                         </Button>
                       </Box>
                     </TableCell>
@@ -530,34 +579,74 @@ const AdminPage = () => {
             <Table sx={{ minWidth: 540 }}>
               <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: "bold" }}>User Email</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Action</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", display: { xs: "none", sm: "table-cell" } }}>Timestamp</TableCell>
-                  <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: "bold", display: { xs: "none", md: "table-cell" } }}>Details</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>
+                    Email Người Dùng
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Hành Động</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      display: { xs: "none", sm: "table-cell" },
+                    }}
+                  >
+                    Thời Gian
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Trạng Thái</TableCell>
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      display: { xs: "none", md: "table-cell" },
+                    }}
+                  >
+                    Chi Tiết
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {auditLogs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                    <TableCell
+                      colSpan={5}
+                      align="center"
+                      sx={{ py: 4, color: "text.secondary" }}
+                    >
                       Chưa có lịch sử truy cập nào
                     </TableCell>
                   </TableRow>
                 ) : (
                   auditLogs.map((log) => (
                     <TableRow key={log.id} hover>
-                      <TableCell sx={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.userEmail}</TableCell>
+                      <TableCell
+                        sx={{
+                          maxWidth: 140,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {log.userEmail}
+                      </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "0.75rem" }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 500, fontSize: "0.75rem" }}
+                        >
                           {log.action.replace(/_/g, " ").toUpperCase()}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ display: { xs: "none", sm: "table-cell" }, whiteSpace: "nowrap" }}>
+                      <TableCell
+                        sx={{
+                          display: { xs: "none", sm: "table-cell" },
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {log.timestamp
                           ? (() => {
                               try {
-                                return format(new Date(log.timestamp), "dd/MM/yyyy HH:mm:ss");
+                                return format(
+                                  new Date(log.timestamp),
+                                  "dd/MM/yyyy HH:mm:ss",
+                                );
                               } catch {
                                 return log.timestamp;
                               }
@@ -579,10 +668,14 @@ const AdminPage = () => {
                             fontSize: "0.75rem",
                           }}
                         >
-                          {log.status}
+                          {log.status === "success" ? "Thành Công" : "Thất Bại"}
                         </Typography>
                       </TableCell>
-                      <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>{log.details || "-"}</TableCell>
+                      <TableCell
+                        sx={{ display: { xs: "none", md: "table-cell" } }}
+                      >
+                        {log.details || "-"}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

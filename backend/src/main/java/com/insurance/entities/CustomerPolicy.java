@@ -1,9 +1,15 @@
 package com.insurance.entities;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "customer_policies")
@@ -21,7 +27,9 @@ public class CustomerPolicy extends BaseEntity {
 
     private LocalDate startDate;
     private LocalDate endDate;
-    private String status;
+    
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'PENDING'")
+    private String status = "PENDING";
 
     // Tài chính
     @Column(name = "total_amount")
@@ -31,6 +39,6 @@ public class CustomerPolicy extends BaseEntity {
     private Double amountPaid;
 
     // Quy trình duyệt: RECEIVING -> APPRAISING -> SIGNING -> ACTIVE
-    @Column(name = "process_step")
-    private String processStep;
+    @Column(name = "process_step", nullable = false, columnDefinition = "VARCHAR(50) DEFAULT 'RECEIVING'")
+    private String processStep = "RECEIVING";
 }

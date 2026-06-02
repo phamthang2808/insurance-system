@@ -81,6 +81,10 @@ export const insuranceService = {
     const response = await apiClient.get(`/notes/customer/${customerId}`);
     return response.data.data;
   },
+  getNotesByStaff: async (staffId: number) => {
+    const response = await apiClient.get(`/notes/staff/${staffId}`);
+    return response.data.data;
+  },
   createNote: async (staffId: number, customerId: number, note: string) => {
     const response = await apiClient.post("/notes", { staffId, customerId, note });
     return response.data.data;

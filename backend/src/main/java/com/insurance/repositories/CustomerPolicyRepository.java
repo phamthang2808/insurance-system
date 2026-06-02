@@ -7,4 +7,5 @@ import java.util.List;
 public interface CustomerPolicyRepository extends JpaRepository<CustomerPolicy, Long> {
     List<CustomerPolicy> findByCustomerId(Long customerId);
     long countByStatus(String status);
+    boolean existsByCustomerIdAndInsurancePackageIdAndStatusIn(Long customerId, Long packageId, List<String> statuses);
 }

@@ -35,6 +35,8 @@ export interface CustomerPolicy {
   id: number;
   customerId: number;
   packageId: number;
+  packageName?: string;
+  customerName?: string;
   startDate: string;
   endDate: string;
   status: string;
@@ -46,7 +48,9 @@ export interface CustomerPolicy {
 export interface IncidentReport {
   id: number;
   customerId: number;
+  title?: string;
   description: string;
+  severity?: string;
   attachments?: string;
   status: string;
   reportedAt: string;
@@ -61,6 +65,7 @@ export interface DashboardStats {
   // Staff
   assignedCustomers?: number;
   totalPolicies?: number;
+  personalSales?: number;
   // Customer
   myPolicies?: CustomerPolicy[];
   myIncidents?: IncidentReport[];

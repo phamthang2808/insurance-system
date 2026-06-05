@@ -3,6 +3,7 @@ import { useAuthStore } from "@/services/authStore";
 import type {
   CustomerPolicy,
   IncidentReport,
+  Appointment,
 } from "@/services/insuranceService";
 import { insuranceService } from "@/services/insuranceService";
 import {
@@ -22,8 +23,24 @@ import {
   TableRow,
   Tabs,
   TextField,
+  Typography,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+
+const parseJacksonDate = (val: any): Date | null => {
+  if (!val) return null;
+  if (Array.isArray(val)) {
+    return new Date(
+      val[0],
+      val[1] - 1,
+      val[2],
+      val[3] || 0,
+      val[4] || 0,
+      val[5] || 0
+    );
+  }
+  return new Date(val);
+};
 
 export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
   onActionComplete,
@@ -37,6 +54,8 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<number | "">("");
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [meetingLinks, setMeetingLinks] = useState<Record<number, string>>({});
 
   useEffect(() => {
     if (open && user?.id) {
@@ -47,10 +66,20 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
   const loadData = async () => {
     if (!user?.id) return;
     try {
-      insuranceService.getAllIncidents().then(setIncidents);
       adminService.getAssignedCustomers(user.id).then((customers) => {
         setAssignedCustomers(customers);
         const custIds = customers.map((c) => c.id);
+
+        // Load and filter incidents by assigned customer IDs
+        insuranceService.getAllIncidents().then((allIncidents) => {
+          setIncidents(
+            allIncidents.filter((i: any) =>
+              custIds.includes(i.customerId),
+            ),
+          );
+        });
+
+        // Load and filter policies
         import("@/services/apiClient")
           .then((m) => m.default.get("/policies"))
           .then((res) => {
@@ -64,6 +93,7 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
           });
       });
       insuranceService.getNotesByStaff?.(user.id).then(setNotes);
+      insuranceService.getStaffAppointments(user.id).then(setAppointments);
     } catch (e) {
       console.error(e);
     }
@@ -93,6 +123,13 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
     onActionComplete();
   };
 
+  const handleUpdateAppointmentStatus = async (id: number, status: string) => {
+    const link = meetingLinks[id] || "";
+    await insuranceService.updateAppointmentStatus(id, status, link);
+    loadData();
+    onActionComplete();
+  };
+
   return (
     <Box sx={{ mt: 2 }}>
       <Button variant="contained" onClick={() => setOpen(true)}>
@@ -111,6 +148,7 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
             <Tab label="Hợp Đồng" />
             <Tab label="Sự Cố" />
             <Tab label="Ghi Chú Tư Vấn" />
+            <Tab label="Lịch Hẹn" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
@@ -255,6 +293,138 @@ export const StaffActions: React.FC<{ onActionComplete: () => void }> = ({
                 </TableBody>
               </Table>
             </Box>
+          )}
+
+          {tabValue === 3 && (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Khách Hàng</TableCell>
+                  <TableCell>Lý Do</TableCell>
+                  <TableCell>Thời Gian</TableCell>
+                  <TableCell>Trạng Thái</TableCell>
+                  <TableCell>Link Cuộc Họp</TableCell>
+                  <TableCell>Hành Động</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {appointments.map((app) => {
+                  const date = parseJacksonDate(app.scheduledTime);
+                  const dateStr = date && !isNaN(date.getTime())
+                    ? date.toLocaleString("vi-VN", {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })
+                    : "N/A";
+
+                  const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+                    'PENDING': { label: 'Chờ duyệt', color: '#d97706', bg: '#fffbeb' },
+                    'APPROVED': { label: 'Đã duyệt', color: '#16a34a', bg: '#ecfdf5' },
+                    'CANCELLED': { label: 'Đã hủy', color: '#dc2626', bg: '#fef2f2' }
+                  };
+                  const statusInfo = statusMap[app.status] || { label: app.status || 'Chờ duyệt', color: '#4b5563', bg: '#f3f4f6' };
+
+                  return (
+                    <TableRow key={app.id}>
+                      <TableCell>#{app.id}</TableCell>
+                      <TableCell>
+                        <strong>{app.customerName || `Khách hàng #${app.customerId}`}</strong>
+                      </TableCell>
+                      <TableCell>{app.reason}</TableCell>
+                      <TableCell>{dateStr}</TableCell>
+                      <TableCell>
+                        <Box
+                          sx={{
+                            display: "inline-block",
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: 1,
+                            fontSize: "0.75rem",
+                            fontWeight: "bold",
+                            color: statusInfo.color,
+                            bgcolor: statusInfo.bg,
+                            border: `1px solid ${statusInfo.color}20`
+                          }}
+                        >
+                          {statusInfo.label}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        {app.status === 'PENDING' ? (
+                          <TextField
+                            size="small"
+                            placeholder="Nhập link Google Meet/Zoom..."
+                            value={meetingLinks[app.id] || ""}
+                            onChange={(e) =>
+                              setMeetingLinks({
+                                ...meetingLinks,
+                                [app.id]: e.target.value,
+                              })
+                            }
+                            sx={{ minWidth: 200 }}
+                          />
+                        ) : app.meetingLink ? (
+                          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                            <a
+                              href={app.meetingLink.startsWith('http') ? app.meetingLink : `https://${app.meetingLink}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#2563eb", textDecoration: "none", fontWeight: "bold", fontSize: "0.85rem" }}
+                            >
+                              🎥 Tham gia
+                            </a>
+                            <span style={{ fontSize: "0.75rem", color: "#6b7280", wordBreak: "break-all" }}>
+                              {app.meetingLink}
+                            </span>
+                          </Box>
+                        ) : (
+                          <span style={{ color: "#9ca3af", fontStyle: "italic" }}>Không có link</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {app.status === 'PENDING' ? (
+                          <Box sx={{ display: "flex", gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              sx={{ textTransform: "none", fontWeight: "bold", borderRadius: 1.5 }}
+                              onClick={() => handleUpdateAppointmentStatus(app.id, 'APPROVED')}
+                            >
+                              Duyệt
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              sx={{ textTransform: "none", fontWeight: "bold", borderRadius: 1.5 }}
+                              onClick={() => handleUpdateAppointmentStatus(app.id, 'CANCELLED')}
+                            >
+                              Từ Chối
+                            </Button>
+                          </Box>
+                        ) : (
+                          <span style={{ color: "#9ca3af" }}>-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {appointments.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Typography sx={{ py: 3, color: "text.secondary" }}>
+                        Không có lịch hẹn nào được đăng ký với bạn.
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           )}
         </DialogContent>
         <DialogActions>

@@ -31,6 +31,18 @@ export interface IncidentReport {
   reportedAt: string;
 }
 
+export interface Appointment {
+  id: number;
+  customerId: number;
+  customerName?: string;
+  staffId?: number;
+  staffName?: string;
+  scheduledTime: string;
+  status: string; // PENDING, APPROVED, REJECTED
+  reason: string;
+  meetingLink?: string;
+}
+
 export const insuranceService = {
   // Packages
   getAllPackages: async () => {
@@ -106,5 +118,27 @@ export const insuranceService = {
   updateIncidentStatus: async (id: number, status: string) => {
     const response = await apiClient.put(`/incidents/${id}/status?status=${status}`);
     return response.data.data;
+  },
+
+  // Appointments
+  createAppointment: async (data: Partial<Appointment>) => {
+    const response = await apiClient.post("/appointments", data);
+    return response.data;
+  },
+  getCustomerAppointments: async (customerId: number) => {
+    const response = await apiClient.get(`/appointments/customer/${customerId}`);
+    return response.data;
+  },
+  getStaffAppointments: async (staffId: number) => {
+    const response = await apiClient.get(`/appointments/staff/${staffId}`);
+    return response.data;
+  },
+  updateAppointmentStatus: async (id: number, status: string, meetingLink?: string) => {
+    let url = `/appointments/${id}/status?status=${status}`;
+    if (meetingLink) {
+      url += `&meetingLink=${encodeURIComponent(meetingLink)}`;
+    }
+    const response = await apiClient.put(url);
+    return response.data;
   },
 };

@@ -10,4 +10,7 @@ import java.util.List;
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByCustomerIdOrderByScheduledTimeDesc(Long customerId);
     List<Appointment> findByStaffIdOrderByScheduledTimeDesc(Long staffId);
+    long countByCustomerId(Long customerId);
+    long countByStaffId(Long staffId);
 }
+

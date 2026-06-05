@@ -8,6 +8,7 @@ import com.insurance.repositories.CustomerPolicyRepository;
 import com.insurance.repositories.InsurancePackageRepository;
 import com.insurance.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +18,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerPolicyService {
 
     private final CustomerPolicyRepository policyRepository;
     private final UserRepository userRepository;
     private final InsurancePackageRepository packageRepository;
+    private final org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
 
     @Transactional(readOnly = true)
     public List<CustomerPolicyDTO> getAllPolicies() {
@@ -57,7 +60,9 @@ public class CustomerPolicyService {
         policy.setTotalAmount(pkg.getPrice() != null ? pkg.getPrice() : 0.0);
         policy.setAmountPaid(request.getAmountPaid() != null ? request.getAmountPaid() : 0.0);
 
-        return mapToDTO(policyRepository.save(policy));
+        CustomerPolicyDTO saved = mapToDTO(policyRepository.save(policy));
+        clearDashboardCache();
+        return saved;
     }
 
     @Transactional
@@ -65,7 +70,9 @@ public class CustomerPolicyService {
         CustomerPolicy policy = policyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Policy not found"));
         policy.setStatus(status);
-        return mapToDTO(policyRepository.save(policy));
+        CustomerPolicyDTO saved = mapToDTO(policyRepository.save(policy));
+        clearDashboardCache();
+        return saved;
     }
 
     @Transactional
@@ -88,7 +95,9 @@ public class CustomerPolicyService {
             default:
                 break;
         }
-        return mapToDTO(policyRepository.save(policy));
+        CustomerPolicyDTO saved = mapToDTO(policyRepository.save(policy));
+        clearDashboardCache();
+        return saved;
     }
 
     @Transactional
@@ -97,7 +106,21 @@ public class CustomerPolicyService {
                 .orElseThrow(() -> new RuntimeException("Policy not found"));
         double currentPaid = policy.getAmountPaid() != null ? policy.getAmountPaid() : 0.0;
         policy.setAmountPaid(currentPaid + amount);
-        return mapToDTO(policyRepository.save(policy));
+        CustomerPolicyDTO saved = mapToDTO(policyRepository.save(policy));
+        clearDashboardCache();
+        return saved;
+    }
+
+    private void clearDashboardCache() {
+        try {
+            java.util.Set<String> keys = redisTemplate.keys("dashboard:*");
+            if (keys != null && !keys.isEmpty()) {
+                redisTemplate.delete(keys);
+                log.info("Evicted dashboard stats cache in Redis on Policy change");
+            }
+        } catch (Exception e) {
+            log.error("Failed to clear dashboard statistics cache", e);
+        }
     }
 
     private CustomerPolicyDTO mapToDTO(CustomerPolicy policy) {

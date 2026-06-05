@@ -7,6 +7,7 @@ import com.insurance.repositories.AppointmentRepository;
 import com.insurance.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,12 +16,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AppointmentController {
 
     private final AppointmentRepository appointmentRepository;
     private final UserRepository userRepository;
 
     @PostMapping
+    @Transactional
     public ResponseEntity<AppointmentDTO> createAppointment(@RequestBody AppointmentDTO dto) {
         UserEntity customer = userRepository.findById(dto.getCustomerId())
                 .orElseThrow(() -> new RuntimeException("Customer not found"));
@@ -51,11 +54,31 @@ public class AppointmentController {
         return ResponseEntity.ok(apps.stream().map(this::convertToDTO).collect(Collectors.toList()));
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> countAppointments(
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long staffId) {
+        if (customerId != null) {
+            return ResponseEntity.ok(appointmentRepository.countByCustomerId(customerId));
+        } else if (staffId != null) {
+            return ResponseEntity.ok(appointmentRepository.countByStaffId(staffId));
+        } else {
+            return ResponseEntity.ok(appointmentRepository.count());
+        }
+    }
+
     @PutMapping("/{id}/status")
-    public ResponseEntity<AppointmentDTO> updateStatus(@PathVariable Long id, @RequestParam String status) {
+    @Transactional
+    public ResponseEntity<AppointmentDTO> updateStatus(
+            @PathVariable Long id, 
+            @RequestParam String status,
+            @RequestParam(required = false) String meetingLink) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
         appointment.setStatus(status);
+        if (meetingLink != null) {
+            appointment.setMeetingLink(meetingLink);
+        }
         Appointment saved = appointmentRepository.save(appointment);
         return ResponseEntity.ok(convertToDTO(saved));
     }

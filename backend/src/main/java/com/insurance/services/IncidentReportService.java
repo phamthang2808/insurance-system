@@ -6,6 +6,7 @@ import com.insurance.models.dto.IncidentReportDTO;
 import com.insurance.repositories.IncidentReportRepository;
 import com.insurance.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class IncidentReportService {
 
     private final IncidentReportRepository incidentRepository;
     private final UserRepository userRepository;
+    private final org.springframework.data.redis.core.RedisTemplate<String, Object> redisTemplate;
 
     @Transactional(readOnly = true)
     public List<IncidentReportDTO> getAllIncidents() {
@@ -44,7 +47,9 @@ public class IncidentReportService {
         incident.setStatus("PENDING");
         incident.setReportedAt(LocalDateTime.now());
 
-        return mapToDTO(incidentRepository.save(incident));
+        IncidentReportDTO saved = mapToDTO(incidentRepository.save(incident));
+        clearDashboardCache();
+        return saved;
     }
 
     @Transactional
@@ -52,7 +57,21 @@ public class IncidentReportService {
         IncidentReport incident = incidentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Incident not found"));
         incident.setStatus(status);
-        return mapToDTO(incidentRepository.save(incident));
+        IncidentReportDTO saved = mapToDTO(incidentRepository.save(incident));
+        clearDashboardCache();
+        return saved;
+    }
+
+    private void clearDashboardCache() {
+        try {
+            java.util.Set<String> keys = redisTemplate.keys("dashboard:*");
+            if (keys != null && !keys.isEmpty()) {
+                redisTemplate.delete(keys);
+                log.info("Evicted dashboard stats cache in Redis on Incident change");
+            }
+        } catch (Exception e) {
+            log.error("Failed to clear dashboard statistics cache", e);
+        }
     }
 
     private IncidentReportDTO mapToDTO(IncidentReport incident) {
